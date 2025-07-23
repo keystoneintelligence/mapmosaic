@@ -15,6 +15,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, QThread, Signal, QObject
 from PySide6.QtGui import QPixmap, QFont, QPalette, QColor
+from inference.openai import OpenAIImageGenerator
 from images.processing import pillow_to_pixmap
 
 
@@ -47,7 +48,7 @@ class FinalRenderWidget(QWidget):
     Widget to accept a colormap, style prompt, and generate a rough-draft map via OpenAI,
     showing progress, result, and export capability.
     """
-    def __init__(self, generator):
+    def __init__(self):
         super().__init__()
         # === Force white background ===
         palette = self.palette()
@@ -55,7 +56,6 @@ class FinalRenderWidget(QWidget):
         self.setAutoFillBackground(True)
         self.setPalette(palette)
 
-        self.generator = generator
         self.original_pixmap = None
         self.output_dir = None  # can be set externally for default save location
 
@@ -177,8 +177,8 @@ class FinalRenderWidget(QWidget):
                     f.write(key)
             except IOError:
                 pass
-            if hasattr(self.generator, 'api_key'):
-                self.generator.api_key = key
+
+        generator = OpenAIImageGenerator(api_key=key)
 
         prompt = self.prompt_input.toPlainText().strip()
         if not prompt or not hasattr(self, 'base_image'):
@@ -189,7 +189,7 @@ class FinalRenderWidget(QWidget):
         self.progress_bar.setVisible(True)
 
         self.thread = QThread()
-        self.worker = _RenderWorker(self.generator, self.base_image, prompt)
+        self.worker = _RenderWorker(generator, self.base_image, prompt)
         self.worker.moveToThread(self.thread)
         self.thread.started.connect(self.worker.run)
         self.worker.finished.connect(self.on_render_finished)

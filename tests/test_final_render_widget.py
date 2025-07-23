@@ -86,7 +86,7 @@ def widget(tmp_path, monkeypatch):
         return str(tmp_path / "out"), None
     monkeypatch.setattr(module.QFileDialog, "getSaveFileName", staticmethod(fake_save))
 
-    w = FinalRenderWidget(generator=object())
+    w = FinalRenderWidget()
     w.output_dir = str(tmp_path)
     return w
 

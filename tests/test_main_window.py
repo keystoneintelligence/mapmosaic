@@ -36,16 +36,6 @@ def test_make_timestamped_dir(monkeypatch, tmp_path):
     assert expected.exists()
 
 
-def test_mainwindow_missing_api_key(monkeypatch):
-    """Without ./api.key present, MainWindow raises FileNotFoundError."""
-    monkeypatch.setattr(module, "make_timestamped_dir", lambda base_path="./output": "/unused")
-    monkeypatch.setattr(os.path, "exists", lambda path: False)
-
-    with pytest.raises(FileNotFoundError) as exc:
-        MainWindow()
-    assert "OpenAI Key should be in ./api.key" in str(exc.value)
-
-
 def test_mainwindow_init_and_navigation(monkeypatch, tmp_path):
     """
     Stub out FinalRenderWidget as a QWidget subclass so stacking works,
@@ -59,18 +49,11 @@ def test_mainwindow_init_and_navigation(monkeypatch, tmp_path):
     fake_key = io.StringIO("MY_TEST_KEY")
     monkeypatch.setattr(builtins, "open", lambda path, mode='r': fake_key)
 
-    # 3) Stub OpenAIImageGenerator so we capture the key
-    class DummyGen:
-        def __init__(self, api_key):
-            self.api_key = api_key
-    monkeypatch.setattr(module, "OpenAIImageGenerator", DummyGen)
-
     # 4) Stub FinalRenderWidget as a QWidget subclass
     from types import SimpleNamespace
     class DummyFinal(QWidget):
-        def __init__(self, generator):
+        def __init__(self):
             super().__init__()
-            self.generator = generator
             # back_button needs a clicked.connect
             self.back_button = SimpleNamespace(clicked=SimpleNamespace(connect=lambda fn: None))
             # store set_colormap calls
@@ -87,8 +70,6 @@ def test_mainwindow_init_and_navigation(monkeypatch, tmp_path):
     # Basic checks
     assert mw.windowTitle() == "MapMosaic"
     assert mw.output_dir == str(tmp_path)
-    assert isinstance(mw.image_generator, DummyGen)
-    assert mw.image_generator.api_key == "MY_TEST_KEY"
 
     # Check stacked pages
     st = mw.stacked_widget
