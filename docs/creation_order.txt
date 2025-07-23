@@ -1,0 +1,74 @@
+The Logic for the Order
+The implementation order is based on the principle of dependency: a class or structure should be implemented before any other class that uses or depends on it.
+Foundational Data Structures: These are used by almost every other component and have no dependencies themselves.
+Core Interfaces & Parameter Classes: Define the contracts (interfaces) and specialized data structures that other classes will use. The base parameter class comes before the classes that extend it.
+Base Noise Providers: These are the simplest providers. They depend only on the foundational structures and interfaces.
+Fractal Noise Providers: These are more complex and are built on top of the Base Noise Providers, so they must be implemented after them.
+Modifier/Combiner Providers: These are the most complex providers, as they take other providers (of any type) as input. They should be implemented after the components they might combine.
+The Main Orchestrator: The MapGenerator class uses all the other components to build the final product, so it must be implemented last.
+Implementation Order and Class List
+Phase 1: Foundational Data Structures
+These are the core building blocks with no dependencies on other custom classes in the system.
+Vector2D (Struct/Class)
+Purpose: A simple data structure to hold x and y coordinates.
+Properties: x: float, y: float.
+Reasoning: This is used as an input parameter for every single noise generation function.
+Heightmap (Class)
+Purpose: To store and manage the final 2D map data.
+Properties: A 2D array of floats (e.g., float[][] data), width: int, height: int.
+Reasoning: This is the ultimate output of the system, but its structure is simple and it's needed by the MapGenerator.
+INoiseProvider (Interface or Abstract Base Class)
+Purpose: To define the common contract for all noise-generating components. This is crucial for the modular architecture, allowing the MapGenerator to treat all providers polymorphically.
+Method Signature (Conceptual): A generate(...) method. The exact signature will vary, so this might be a "marker" interface or a base with a flexible signature.
+Phase 2: Parameter Structures and Enums
+These are specialized data structures for configuring the noise providers. They should be created before the providers that use them.
+NoiseParameters (Base Class/Struct)
+Purpose: A base class for all noise parameter configurations.
+Properties: seed: int, frequency: float, amplitude: float.
+Reasoning: Must be created before the more specific parameter classes that inherit from it.
+FbmParameters (Class/Struct)
+Purpose: Specific parameters for Fractal Brownian Motion-based providers.
+Inherits from: NoiseParameters.
+Adds Properties: octaves: int, lacunarity: float, persistence: float.
+ModulationParameters (Class/Struct)
+Purpose: Parameters for the NoiseModulationProvider.
+Inherits from: NoiseParameters.
+Adds Properties: operation: enum (where the enum would contain values like ADD, MULTIPLY, AVERAGE, SCREEN). You'll need to define this enum as well.
+MaskParameters (Class/Struct)
+Purpose: Parameters for the HybridMaskProvider.
+Inherits from: NoiseParameters.
+Adds Properties: blendThreshold: float, blendSharpness: float.
+Phase 3: Base Noise Providers
+These providers generate fundamental patterns and depend only on Phase 1 & 2 components. They can be implemented in any order relative to each other.
+ValueNoiseProvider
+PerlinNoiseProvider
+SimplexNoiseProvider
+OpenSimplexNoiseProvider
+WorleyNoiseProvider
+All Implement: INoiseProvider interface.
+All Use: Vector2D and NoiseParameters as inputs.
+Phase 4: Fractal Noise Providers
+These providers depend on the existence of a BaseNoiseProvider (from Phase 3) to use as a source.
+FbmProvider (Fractional Brownian Motion)
+BillowNoiseProvider
+RidgedMultifractalProvider
+HybridMultifractalProvider
+All Implement: INoiseProvider interface.
+All Use: Vector2D, FbmParameters, and an instance of a Base Noise Provider (e.g., PerlinNoiseProvider) as inputs.
+Phase 5: Modifier & Combiner Providers
+These are the most complex providers. They take other INoiseProvider instances (from Phase 3, 4, or 5) as input, so they must be built after those are available.
+DomainWarpingProvider
+Implements: INoiseProvider.
+Depends on: INoiseProvider (takes two provider instances: baseProvider and warpProvider).
+NoiseModulationProvider
+Implements: INoiseProvider.
+Depends on: INoiseProvider (takes two provider instances: providerA and providerB). Also uses ModulationParameters.
+HybridMaskProvider
+Implements: INoiseProvider.
+Depends on: INoiseProvider (takes three provider instances: maskProvider, providerA, providerB). Also uses MaskParameters.
+Phase 6: The Main Orchestrator
+This is the final class that ties everything together. It depends on all previously defined classes.
+MapGenerator
+Purpose: The high-level class that reads a configuration, instantiates the required noise providers (from Phases 3, 4, and 5), and runs the generation pipeline.
+Depends on: All INoiseProvider implementations, Heightmap, and all parameter structs.
+Core Logic: Implements the generateMap method, which contains the pixel iteration loop, coordinate transformation, pipeline execution, and final normalization pass as described in the ICD.

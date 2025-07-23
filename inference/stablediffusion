@@ -1,0 +1,71 @@
+"""
+A convenience class for Stable Diffusion inpainting that uses an image's
+fully transparent areas (alpha=0) as the mask. The `inpaint` method now
+accepts arbitrary images at call time.
+"""
+from PIL import Image
+import torch
+from diffusers import StableDiffusionInpaintPipeline
+
+
+class StableDiffusionInpainter:
+    """
+    Inpaints an RGBA image by treating fully transparent pixels
+    as the region to be regenerated.
+    """
+    def __init__(
+        self,
+        model_id: str = "runwayml/stable-diffusion-inpainting",
+    ):
+        """
+        Args:
+            model_id: HF model name for the inpainting pipeline.
+        """
+        # --- Setup device & dtype ---
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        dtype = torch.float16 if self.device == "cuda" else torch.float32
+
+        # --- Load & move pipeline ---
+        self.pipe = StableDiffusionInpaintPipeline.from_pretrained(
+            model_id,
+            torch_dtype=dtype,
+        ).to(self.device)
+
+    def inpaint(
+        self,
+        img_path: str,
+        prompt: str,
+        output_path: str,
+        num_steps: int = 50,
+        guidance_scale: float = 7.5,
+    ):
+        """
+        Runs inpainting on the given RGBA image and saves the result.
+
+        Args:
+            img_path: Path to an RGBA image where alpha=0 marks areas to inpaint.
+            prompt: Text prompt guiding the inpainting.
+            output_path: Where to save the final image.
+            num_steps: Number of diffusion steps.
+            guidance_scale: CFG scale.
+        """
+        # --- Load RGBA image and split out alpha channel ---
+        rgba = Image.open(img_path).convert("RGBA")
+        init_image = rgba.convert("RGB")  # pipeline requires RGB
+
+        alpha = rgba.split()[-1]  # get the alpha band
+        # Build binary mask: 255 where alpha==0 (to inpaint), else 0
+        mask_image = alpha.point(lambda p: 255 if p == 0 else 0).convert("L")
+
+        # --- Run inpainting ---
+        result = self.pipe(
+            prompt=prompt,
+            image=init_image,
+            mask_image=mask_image,
+            num_inference_steps=num_steps,
+            guidance_scale=guidance_scale,
+        ).images[0]
+
+        # --- Save output ---
+        result.save(output_path)
+        print(f"[✔] Inpainted image saved to {output_path}")

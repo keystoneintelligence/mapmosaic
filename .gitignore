@@ -1,0 +1,5 @@
+.env
+.coverage
+.coveragerc
+*__pycache__*
+/output/*
