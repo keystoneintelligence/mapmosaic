@@ -1,5 +1,3 @@
-# gui/feature_mapping_widget.py
-
 import os
 import numpy as np
 from PIL import Image
@@ -9,7 +7,7 @@ from PySide6.QtWidgets import (
     QSizePolicy, QSpinBox, QColorDialog, QApplication
 )
 from PySide6.QtCore import Qt, QEvent
-from PySide6.QtGui import QPixmap, QColor, QMouseEvent, QImage
+from PySide6.QtGui import QPixmap, QColor, QMouseEvent, QImage, QFont, QPalette
 
 from gui.paintable_label import PaintableLabel
 from gui.multi_handle_slider import MultiHandleSlider
@@ -23,6 +21,12 @@ def pillow_to_pixmap(img: Image.Image) -> QPixmap:
 class FeatureMappingWidget(QWidget):
     def __init__(self):
         super().__init__()
+        # === Force full white background ===
+        palette = self.palette()
+        palette.setColor(QPalette.ColorRole.Window, QColor("white"))
+        self.setAutoFillBackground(True)
+        self.setPalette(palette)
+
         self._press_pos = None
         self._dragging_btn = False
 
@@ -64,9 +68,10 @@ class FeatureMappingWidget(QWidget):
         for idx, reg in enumerate(self.regions):
             btn = QPushButton("▼", self.range_slider)
             btn.setFixedSize(16, 16)
+            # Transparent background, colored arrow
             btn.setStyleSheet(
-                f"color: {reg['color'].name()}; "
-                "background-color: transparent; "
+                f"color: {reg['color'].name()};"
+                "background-color: transparent;"
                 "border: none;"
             )
             btn.setToolTip(reg["label"])
@@ -106,6 +111,30 @@ class FeatureMappingWidget(QWidget):
         ctl.addWidget(self.cont_button)
 
         layout.addLayout(ctl)
+
+        # === Apply consistent styling to control buttons only ===
+        font = QFont()
+        font.setPointSize(11)
+        font.setBold(True)
+        control_style = """
+            QPushButton {
+                background-color: #5c4d7d;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                padding: 10px 20px;
+            }
+            QPushButton:hover {
+                background-color: #6e5a92;
+            }
+            QPushButton:pressed {
+                background-color: #4d3c6a;
+            }
+        """
+        for btn in (self.paint_toggle, self.back_button, self.cont_button):
+            btn.setFont(font)
+            btn.setFixedHeight(45)
+            btn.setStyleSheet(control_style)
 
     def _on_paint_toggled(self, enabled: bool):
         """Show/hide brush size & color controls."""
@@ -149,7 +178,6 @@ class FeatureMappingWidget(QWidget):
                 )
                 self.range_slider.mouseReleaseEvent(mapped)
                 if not self._dragging_btn:
-                    # now choose color for this handle
                     self.choose_color(self.handle_buttons.index(obj))
                 self._press_pos = None
                 self._dragging_btn = False
