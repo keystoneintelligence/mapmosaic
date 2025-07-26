@@ -3,3 +3,4 @@
 .coveragerc
 *__pycache__*
 /output/*
+*api.key*
