@@ -57,6 +57,7 @@ class NoiseWidget(QWidget):
             control_layout.addWidget(widget, row, 1)
 
         self.base_freq_spin = QDoubleSpinBox()
+        self.base_freq_spin.setDecimals(3)
         self.base_freq_spin.setRange(0.0001, 0.1)
         self.base_freq_spin.setSingleStep(0.0001)
         self.base_freq_spin.setValue(0.005)
@@ -66,21 +67,25 @@ class NoiseWidget(QWidget):
         self.octaves_spin.setValue(6)
 
         self.lacunarity_spin = QDoubleSpinBox()
+        self.base_freq_spin.setDecimals(3)
         self.lacunarity_spin.setRange(1.0, 4.0)
         self.lacunarity_spin.setSingleStep(0.1)
         self.lacunarity_spin.setValue(2.2)
 
         self.gain_spin = QDoubleSpinBox()
+        self.base_freq_spin.setDecimals(3)
         self.gain_spin.setRange(0.1, 1.0)
         self.gain_spin.setSingleStep(0.01)
         self.gain_spin.setValue(0.5)
 
         self.warp_amp_spin = QDoubleSpinBox()
+        self.base_freq_spin.setDecimals(3)
         self.warp_amp_spin.setRange(0.0, 1.0)
         self.warp_amp_spin.setSingleStep(0.01)
         self.warp_amp_spin.setValue(0.1)
 
         self.warp_freq_spin = QDoubleSpinBox()
+        self.base_freq_spin.setDecimals(3)
         self.warp_freq_spin.setRange(0.001, 0.1)
         self.warp_freq_spin.setSingleStep(0.001)
         self.warp_freq_spin.setValue(0.02)
