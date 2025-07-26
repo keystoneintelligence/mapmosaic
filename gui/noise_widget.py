@@ -1,18 +1,12 @@
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QGridLayout, QDoubleSpinBox,
-    QSpinBox, QPushButton, QHBoxLayout, QSizePolicy
+    QSpinBox, QPushButton, QHBoxLayout
 )
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QPixmap, QPalette, QColor, QFont
-from PIL.ImageQt import ImageQt
+from PySide6.QtGui import QPalette, QColor, QFont
 
 from noise.heightmap_generator import HeightmapGenerator
-
-
-def pillow_to_pixmap(img):
-    """Convert a PIL Image to QPixmap via ImageQt."""
-    qimage = ImageQt(img.convert("RGBA"))
-    return QPixmap.fromImage(qimage)
+from images.processing import pillow_to_pixmap
 
 
 class NoiseWidget(QWidget):

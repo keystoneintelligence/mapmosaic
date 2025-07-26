@@ -2,17 +2,20 @@ import os
 from PIL import Image
 from PIL.ImageQt import ImageQt
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton,
-    QHBoxLayout, QTextEdit, QSizePolicy, QProgressBar
+    QWidget,
+    QVBoxLayout,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QHBoxLayout,
+    QTextEdit,
+    QSizePolicy,
+    QProgressBar,
+    QFileDialog
 )
 from PySide6.QtCore import Qt, QThread, Signal, QObject
 from PySide6.QtGui import QPixmap, QFont, QPalette, QColor
-
-
-def pillow_to_pixmap(img):
-    """Convert a PIL Image to QPixmap via ImageQt."""
-    qimage = ImageQt(img.convert("RGBA"))
-    return QPixmap.fromImage(qimage)
+from images.processing import pillow_to_pixmap
 
 
 class _RenderWorker(QObject):
@@ -54,7 +57,7 @@ class FinalRenderWidget(QWidget):
 
         self.generator = generator
         self.original_pixmap = None
-        self.output_dir = None
+        self.output_dir = None  # can be set externally for default save location
 
         # === Main layout ===
         main_layout = QVBoxLayout(self)
@@ -143,7 +146,7 @@ class FinalRenderWidget(QWidget):
 
     def set_colormap(self, colormap_image):
         """Receive a PIL.Image or QPixmap, save for AI input, and display."""
-        from PIL import Image
+        from PIL import Image as PILImage
         # Convert QPixmap to PIL if needed
         if isinstance(colormap_image, QPixmap):
             qimg = colormap_image.toImage()
@@ -229,7 +232,20 @@ class FinalRenderWidget(QWidget):
         return self.original_pixmap
 
     def save_final_map(self):
-        """Save the generated map to disk in output_dir."""
-        if self.original_pixmap and self.output_dir:
-            path = os.path.join(self.output_dir, "roughdraft.png")
-            self.original_pixmap.save(path, "PNG")
+        """Open a file dialog for the user to choose save location and save the generated map."""
+        if not self.original_pixmap:
+            return
+
+        # Suggest default filename in output_dir if available
+        default_name = os.path.join(self.output_dir, "finaldraft.png") if self.output_dir else "finaldraft.png"
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save Map",
+            default_name,
+            "PNG Files (*.png);;All Files (*)"
+        )
+        if file_path:
+            # Ensure .png extension
+            if not file_path.lower().endswith('.png'):
+                file_path += '.png'
+            self.original_pixmap.save(file_path, "PNG")

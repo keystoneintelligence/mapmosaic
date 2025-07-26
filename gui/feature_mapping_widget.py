@@ -1,21 +1,16 @@
 import os
 import numpy as np
 from PIL import Image
-from PIL.ImageQt import ImageQt
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
     QSizePolicy, QSpinBox, QColorDialog, QApplication
 )
 from PySide6.QtCore import Qt, QEvent
-from PySide6.QtGui import QPixmap, QColor, QMouseEvent, QImage, QFont, QPalette
+from PySide6.QtGui import QColor, QMouseEvent, QImage, QFont, QPalette
 
 from gui.paintable_label import PaintableLabel
 from gui.multi_handle_slider import MultiHandleSlider
-
-
-def pillow_to_pixmap(img: Image.Image) -> QPixmap:
-    qimg = ImageQt(img.convert("RGBA"))
-    return QPixmap.fromImage(qimg)
+from images.processing import pillow_to_pixmap
 
 
 class FeatureMappingWidget(QWidget):
