@@ -61,7 +61,7 @@ class MainWindow(QMainWindow):
         self.welcome_page.start_button.clicked.connect(self.go_to_noise)
         self.noise_page.next_button.clicked.connect(self.go_to_feature)
         self.feature_page.back_button.clicked.connect(self.go_to_noise)
-        self.feature_page.next_button.clicked.connect(self.go_to_final)
+        self.feature_page.cont_button.clicked.connect(self.go_to_final)
         self.final_page.back_button.clicked.connect(self.go_to_feature)
 
         # Default screen is the welcome page
