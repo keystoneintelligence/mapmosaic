@@ -1,12 +1,12 @@
 import os
 from PIL import Image
+from PIL.ImageQt import ImageQt
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton,
     QHBoxLayout, QTextEdit, QSizePolicy, QProgressBar
 )
 from PySide6.QtCore import Qt, QThread, Signal, QObject
-from PySide6.QtGui import QPixmap
-from PIL.ImageQt import ImageQt
+from PySide6.QtGui import QPixmap, QFont, QPalette, QColor
 
 
 def pillow_to_pixmap(img):
@@ -46,12 +46,21 @@ class FinalRenderWidget(QWidget):
     """
     def __init__(self, generator):
         super().__init__()
-        self.generator = generator
-        self.original_pixmap: QPixmap | None = None
-        self.output_dir = None  # to be set by MainWindow
+        # === Force white background ===
+        palette = self.palette()
+        palette.setColor(QPalette.ColorRole.Window, QColor("white"))
+        self.setAutoFillBackground(True)
+        self.setPalette(palette)
 
+        self.generator = generator
+        self.original_pixmap = None
+        self.output_dir = None
+
+        # === Main layout ===
         main_layout = QVBoxLayout(self)
         main_layout.setAlignment(Qt.AlignTop)
+        main_layout.setContentsMargins(40, 40, 40, 40)
+        main_layout.setSpacing(25)
 
         # Preview label
         self.preview_label = QLabel("No map loaded.")
@@ -61,6 +70,7 @@ class FinalRenderWidget(QWidget):
 
         # API Key input
         key_layout = QHBoxLayout()
+        key_layout.setAlignment(Qt.AlignCenter)
         key_layout.addWidget(QLabel("OpenAI API Key:"))
         self.api_key_input = QLineEdit()
         key_file = "./api.key"
@@ -74,7 +84,9 @@ class FinalRenderWidget(QWidget):
         main_layout.addLayout(key_layout)
 
         # Prompt input
-        main_layout.addWidget(QLabel("Art Style Prompt:"))
+        prompt_label = QLabel("Art Style Prompt:")
+        prompt_label.setAlignment(Qt.AlignCenter)
+        main_layout.addWidget(prompt_label)
         self.prompt_input = QTextEdit()
         self.prompt_input.setPlaceholderText(
             "Describe the artistic style or details (e.g., 'ancient hand-drawn fantasy map with muted earth tones')"
@@ -90,17 +102,40 @@ class FinalRenderWidget(QWidget):
 
         # Buttons
         btn_layout = QHBoxLayout()
+        btn_layout.setAlignment(Qt.AlignCenter)
         self.back_button = QPushButton("Back")
         self.generate_button = QPushButton("Generate")
-        # Export button, enabled after generation finishes
         self.export_button = QPushButton("Export")
         self.export_button.setEnabled(False)
-
         btn_layout.addWidget(self.back_button)
-        btn_layout.addStretch(1)
+        btn_layout.addSpacing(20)
         btn_layout.addWidget(self.generate_button)
         btn_layout.addWidget(self.export_button)
         main_layout.addLayout(btn_layout)
+
+        # === Style control buttons ===
+        font = QFont()
+        font.setPointSize(11)
+        font.setBold(True)
+        style = """
+            QPushButton {
+                background-color: #5c4d7d;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                padding: 10px 20px;
+            }
+            QPushButton:hover {
+                background-color: #6e5a92;
+            }
+            QPushButton:pressed {
+                background-color: #4d3c6a;
+            }
+        """
+        for btn in (self.back_button, self.generate_button, self.export_button):
+            btn.setFont(font)
+            btn.setFixedHeight(45)
+            btn.setStyleSheet(style)
 
         # Connections
         self.generate_button.clicked.connect(self.start_generation)
