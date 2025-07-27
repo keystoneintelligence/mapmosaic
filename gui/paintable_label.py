@@ -1,85 +1,110 @@
-# File: paintable_label.py
+# gui/paintable_label.py
+
 from PySide6.QtWidgets import QLabel
-from PySide6.QtGui import QPainter, QPen
+from PySide6.QtGui import QPainter, QPen, QColor
 from PySide6.QtCore import Qt, QPoint
 
 class PaintableLabel(QLabel):
-    """A QLabel subclass that allows for painting with the mouse."""
+    """A QLabel subclass that allows for toggleable painting with the mouse."""
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setMouseTracking(True)
         self.drawing = False
         self.last_point = QPoint()
-        
-        self.active_pixmap = None
-        self.brush_size = 10
-        self.brush_color = Qt.GlobalColor.black
 
-    # --- NEW HELPER FUNCTION ---
-    # This function translates coordinates from the label's space to the pixmap's space.
+        # Always store a QColor here
+        self.brush_size = 10
+        self.brush_color = QColor(Qt.GlobalColor.black)
+
+        # This is the pixmap we draw onto.
+        self.active_pixmap = None
+
+        # Toggleable paint mode
+        self.painting_enabled = False
+
+        # We will manually scale before showing, so disable auto-scaling
+        self.setScaledContents(False)
+
+    def set_painting_enabled(self, enabled: bool):
+        self.painting_enabled = enabled
+
+    def set_brush_size(self, size: int):
+        self.brush_size = size
+
+    def set_brush_color(self, color: QColor):
+        self.brush_color = color
+
     def _get_pixmap_coords(self, label_pos: QPoint) -> QPoint:
         if self.active_pixmap is None:
-            return label_pos
+            return QPoint(-1, -1)
+        lw, lh = self.width(), self.height()
+        pw, ph = self.active_pixmap.width(), self.active_pixmap.height()
+        scale = min(lw / pw, lh / ph)
+        dw, dh = pw * scale, ph * scale
+        ox, oy = (lw - dw) / 2, (lh - dh) / 2
 
-        # Get the size of the label and the pixmap
-        label_size = self.size()
-        pixmap_size = self.active_pixmap.size()
-
-        # Calculate the offset of the centered pixmap
-        offset_x = (label_size.width() - pixmap_size.width()) // 2
-        offset_y = (label_size.height() - pixmap_size.height()) // 2
-        
-        # Subtract the offset to get the coordinate relative to the pixmap
-        return label_pos - QPoint(offset_x, offset_y)
+        x = label_pos.x() - ox
+        y = label_pos.y() - oy
+        if x < 0 or y < 0 or x > dw or y > dh:
+            return QPoint(-1, -1)
+        return QPoint(int(x / scale), int(y / scale))
 
     def set_active_pixmap(self, pixmap):
         self.active_pixmap = pixmap
-        self.setPixmap(self.active_pixmap)
+        self._refresh_scaled()
 
     def mousePressEvent(self, event):
-        if event.button() == Qt.MouseButton.LeftButton and self.active_pixmap:
-            # --- MODIFIED ---
-            # Translate coordinates before using them
-            pixmap_pos = self._get_pixmap_coords(event.position().toPoint())
+        if (not self.painting_enabled
+            or event.button() != Qt.MouseButton.LeftButton
+            or self.active_pixmap is None):
+            return super().mousePressEvent(event)
 
-            # Only start drawing if the click is inside the pixmap's bounds
-            if self.active_pixmap.rect().contains(pixmap_pos):
-                self.drawing = True
-                self.last_point = pixmap_pos
-                self.draw_point(self.last_point)
+        pt = self._get_pixmap_coords(event.position().toPoint())
+        if pt.x() >= 0 and self.active_pixmap.rect().contains(pt):
+            self.drawing = True
+            self.last_point = pt
+            self._draw_point(pt)
+        else:
+            return super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
-        if self.drawing and self.active_pixmap:
-            # --- MODIFIED ---
-            # Translate coordinates before drawing
-            pixmap_pos = self._get_pixmap_coords(event.position().toPoint())
-            self.draw_line(self.last_point, pixmap_pos)
-            self.last_point = pixmap_pos
+        if self.painting_enabled and self.drawing and self.active_pixmap:
+            pt = self._get_pixmap_coords(event.position().toPoint())
+            if pt.x() >= 0:
+                self._draw_line(self.last_point, pt)
+                self.last_point = pt
+        else:
+            super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
             self.drawing = False
+        else:
+            super().mouseReleaseEvent(event)
 
-    def draw_point(self, point):
+    def _draw_point(self, p: QPoint):
+        painter = QPainter(self.active_pixmap)
+        pen = QPen(self.brush_color, self.brush_size,
+                   Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin)
+        painter.setPen(pen)
+        painter.drawPoint(p)
+        painter.end()
+        self._refresh_scaled()
+
+    def _draw_line(self, a: QPoint, b: QPoint):
+        painter = QPainter(self.active_pixmap)
+        pen = QPen(self.brush_color, self.brush_size,
+                   Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin)
+        painter.setPen(pen)
+        painter.drawLine(a, b)
+        painter.end()
+        self._refresh_scaled()
+
+    def _refresh_scaled(self):
         if not self.active_pixmap:
             return
-        painter = QPainter(self.active_pixmap)
-        pen = QPen(self.brush_color, self.brush_size, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin)
-        painter.setPen(pen)
-        painter.drawPoint(point)
-        painter.end()
-        self.update()
-
-    def draw_line(self, start_point, end_point):
-        if not self.active_pixmap:
-            return
-        painter = QPainter(self.active_pixmap)
-        pen = QPen(self.brush_color, self.brush_size, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin)
-        painter.setPen(pen)
-        painter.drawLine(start_point, end_point)
-        painter.end()
-        self.update()
-
-    def update(self):
-        # Update the label's display
-        self.setPixmap(self.active_pixmap)
+        lw, lh = self.width(), self.height()
+        scaled = self.active_pixmap.scaled(
+            lw, lh, Qt.KeepAspectRatio, Qt.SmoothTransformation
+        )
+        self.setPixmap(scaled)

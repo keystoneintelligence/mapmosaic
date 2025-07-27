@@ -1,6 +1,8 @@
 from enum import Enum
 from PIL import Image
 from typing import List, Tuple
+from PySide6.QtGui import QPixmap
+from PIL.ImageQt import ImageQt
 
 
 class Corner(Enum):
@@ -185,3 +187,8 @@ def get_overlay_positions(
             coords.append((x, y))
 
     return coords
+
+
+def pillow_to_pixmap(img: Image.Image) -> QPixmap:
+    qimg = ImageQt(img.convert("RGBA"))
+    return QPixmap.fromImage(qimg)

@@ -5,11 +5,4 @@ pyfastnoiselite
 opensimplex 
 PySide6
 openai>=1.97.0
-
-# stable diffusion
-diffusers>=0.20.0
-transformers>=4.35.0
-accelerate
-safetensors
-
-huggingface_hub[hf_xet]>=0.16.4
+pytest-qt
