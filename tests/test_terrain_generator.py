@@ -33,3 +33,27 @@ def test_terrain_generator_apply_correct_mapping_and_output():
     px = result.load()
     for x, exp in enumerate(expected_colors):
         assert px[x, 0] == exp, f"Pixel at x={x} was {px[x,0]}, expected {exp}"
+
+
+def test_apply_with_numpy_array_clips_values():
+    """
+    Tests that when a numpy array is passed to apply(), its values are
+    clipped to the [0, 1] range. This covers lines 35-38.
+    """
+    # arrange
+    # Values outside the [0, 1] range to test clipping
+    height_values = [-0.5, 1.5]
+    heightmap = np.array([height_values], dtype=np.float32)
+
+    tg = TerrainGenerator()
+
+    # act
+    result = tg.apply(heightmap)
+
+    # assert
+    px = result.load()
+
+    # -0.5 should be clipped to 0.0, falling into the first region (deep water)
+    assert px[0, 0] == tg.regions[0][2]
+    # 1.5 should be clipped to 1.0, falling into the last region (snow)
+    assert px[1, 0] == tg.regions[-1][2]

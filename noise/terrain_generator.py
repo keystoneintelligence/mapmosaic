@@ -44,8 +44,12 @@ class TerrainGenerator:
         rgb = np.zeros((h, w, 3), dtype=np.uint8)
 
         # Apply each region
-        for min_e, max_e, color in self.regions:
-            mask = (arr >= min_e) & (arr < max_e)
+        for i, (min_e, max_e, color) in enumerate(self.regions):
+            if i == len(self.regions) - 1:
+                # Last region is inclusive on the upper bound
+                mask = (arr >= min_e) & (arr <= max_e)
+            else:
+                mask = (arr >= min_e) & (arr < max_e)
             rgb[mask] = color
 
         return Image.fromarray(rgb, mode='RGB')
