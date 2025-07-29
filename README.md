@@ -15,11 +15,11 @@ AI-enhanced procedural map generator. Map Mosaic combines classic procedural noi
 ### Sample Maps
 
 <p align="center" style="display: flex; align-items: center; justify-content: center; gap: 16px;">
-  <img src="images/sample_map_1.png" alt="Sample Map 1" width="240" />
+  <img src="graphics/step_1.png" alt="Sample Map 1" width="240" />
   <span style="font-size: 2rem;">➔</span>
-  <img src="images/sample_map_2.png" alt="Sample Map 2" width="240" />
+  <img src="graphics/step_2.png" alt="Sample Map 2" width="240" />
   <span style="font-size: 2rem;">➔</span>
-  <img src="images/sample_map_3.png" alt="Sample Map 3" width="240" />
+  <img src="graphics/step_3.png" alt="Sample Map 3" width="240" />
 </p>
 
 ---
