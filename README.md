@@ -1,6 +1,6 @@
 # 🗺️ Map Mosaic
 
-AI-enhanced procedural map generator.Map Mosaic combines classic procedural noise with modern AI generation to craft a cohesive fantasy or real-world map—ideal for video games, tabletop RPGs, storytelling, and visualization.
+AI-enhanced procedural map generator. Map Mosaic combines classic procedural noise with modern AI generation to craft a cohesive fantasy or real-world map—ideal for video games, tabletop RPGs, storytelling, and visualization.
 
 ---
 
@@ -8,21 +8,25 @@ AI-enhanced procedural map generator.Map Mosaic combines classic procedural nois
 
 ### Interface
 
-![GUI](graphics/gui.png)
+<p align="center">
+  <img src="graphics/gui.png" alt="MapMosaic GUI" style="max-width: 100%; height: auto;" />
+</p>
 
 ### Sample Maps
 
-<p align="center">
-  <img src="graphics/step_1.png" alt="Map Step 1" width="256"/> ➔
-  <img src="graphics/step_2.png" alt="Map Step 2" width="256"/> ➔
-  <img src="graphics/step_3.png" alt="Map Step 3" width="256"/>
+<p align="center" style="display: flex; align-items: center; justify-content: center; gap: 16px;">
+  <img src="images/sample_map_1.png" alt="Sample Map 1" width="240" />
+  <span style="font-size: 2rem;">➔</span>
+  <img src="images/sample_map_2.png" alt="Sample Map 2" width="240" />
+  <span style="font-size: 2rem;">➔</span>
+  <img src="images/sample_map_3.png" alt="Sample Map 3" width="240" />
 </p>
 
 ---
 
 ## ✨ Key Features
 
-- 🎲 **Procedural Heightmap Generation**:Generate unique elevation maps with intuitive noise controls and instant preview.
+- 🎲 **Procedural Heightmap Generation**: Generate unique elevation maps with intuitive noise controls and instant preview.
 - 🎨 **Color Mapping**: Guide the AI generation with easy-to-use color mappings for different terrain bands.
 - 🖌️ **Paint Mode & AI Generation**: Hand-paint details or apply an overall art-style prompt—Map Mosaic will generate the final stylized map in one go using the latest generative AI capabilities.
 - 🧰 **Intuitive GUI**: An easy-to-use interface walks you through each step—no steep learning curve.
@@ -68,13 +72,13 @@ python main.py
 
 ## ❓ FAQ
 
-**How does this tool interact with OpenAI?**
+**How does this tool interact with OpenAI?**  
 In order to utilize the generative AI capabilites of Map Mosaic you must provide your own OpenAI API Key.
 
-**What resolutions are supported?**
+**What resolutions are supported?**  
 Maps are currently output at 1024×1024 resolution.
 
-**Can I use Map Mosaic commercially?**
+**Can I use Map Mosaic commercially?**  
 Yes—see the LICENSE for details.
 
 ---

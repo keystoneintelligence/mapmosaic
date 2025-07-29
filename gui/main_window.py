@@ -9,9 +9,6 @@ from gui.noise_widget import NoiseWidget
 from gui.feature_mapping_widget import FeatureMappingWidget
 from gui.final_render_widget import FinalRenderWidget
 
-# OpenAI image generator
-from inference.openai import OpenAIImageGenerator
-
 
 def make_timestamped_dir(base_path: str = "./output") -> str:
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -28,16 +25,6 @@ class MainWindow(QMainWindow):
         # Prepare output directory
         self.output_dir = make_timestamped_dir()
 
-        # Load API key
-        key_path = "./api.key"
-        if not os.path.exists(key_path):
-            raise FileNotFoundError("OpenAI Key should be in ./api.key")
-        with open(key_path, "r") as f:
-            api_key = f.read().strip()
-
-        # Initialize OpenAI generator
-        self.image_generator = OpenAIImageGenerator(api_key=api_key)
-
         # Set up stacked workflow
         self.stacked_widget = QStackedWidget()
         # Force entire window background to white
@@ -51,7 +38,7 @@ class MainWindow(QMainWindow):
         self.welcome_page = WelcomeWidget()
         self.noise_page = NoiseWidget()
         self.feature_page = FeatureMappingWidget()
-        self.final_page = FinalRenderWidget(generator=self.image_generator)
+        self.final_page = FinalRenderWidget()
 
         # Add pages in order
         for page in (self.welcome_page, self.noise_page, self.feature_page, self.final_page):

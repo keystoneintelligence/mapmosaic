@@ -6,3 +6,4 @@ opensimplex
 PySide6
 openai>=1.97.0
 pytest-qt
+pyinstaller
