@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QGridLayout, QDoubleSpinBox,
-    QSpinBox, QPushButton, QHBoxLayout
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QGridLayout,
+    QDoubleSpinBox, QSpinBox, QPushButton, QSizePolicy
 )
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QPalette, QColor, QFont
@@ -27,19 +27,25 @@ class NoiseWidget(QWidget):
 
         # === Main vertical layout ===
         main_layout = QVBoxLayout(self)
-        main_layout.setAlignment(Qt.AlignTop | Qt.AlignHCenter)
         main_layout.setContentsMargins(40, 40, 40, 40)
         main_layout.setSpacing(25)
 
-        # === Centered preview label ===
+        # === Centered, flexible preview label ===
         self.preview_label = QLabel(alignment=Qt.AlignCenter)
-        self.preview_label.setFixedSize(*self.preview_size)
+        # allow it to shrink/expand instead of fixed-sizing
+        self.preview_label.setMinimumSize(*self.preview_size)
+        self.preview_label.setSizePolicy(
+            QSizePolicy.Expanding, QSizePolicy.Expanding
+        )
         self.preview_label.setStyleSheet("border: 1px solid #ddd;")
         preview_container = QHBoxLayout()
-        preview_container.addStretch()
+        preview_container.addStretch(1)
         preview_container.addWidget(self.preview_label)
-        preview_container.addStretch()
+        preview_container.addStretch(1)
         main_layout.addLayout(preview_container)
+
+        # push controls down when there’s extra space
+        main_layout.addStretch(1)
 
         # === Noise parameter controls ===
         control_layout = QGridLayout()
@@ -50,6 +56,7 @@ class NoiseWidget(QWidget):
             control_layout.addWidget(QLabel(label), row, 0)
             control_layout.addWidget(widget, row, 1)
 
+        # initialize spinboxes
         self.base_freq_spin = QDoubleSpinBox()
         self.base_freq_spin.setDecimals(3)
         self.base_freq_spin.setRange(0.0001, 0.1)
@@ -61,25 +68,25 @@ class NoiseWidget(QWidget):
         self.octaves_spin.setValue(6)
 
         self.lacunarity_spin = QDoubleSpinBox()
-        self.base_freq_spin.setDecimals(3)
+        self.lacunarity_spin.setDecimals(3)
         self.lacunarity_spin.setRange(1.0, 4.0)
         self.lacunarity_spin.setSingleStep(0.1)
         self.lacunarity_spin.setValue(2.2)
 
         self.gain_spin = QDoubleSpinBox()
-        self.base_freq_spin.setDecimals(3)
+        self.gain_spin.setDecimals(3)
         self.gain_spin.setRange(0.1, 1.0)
         self.gain_spin.setSingleStep(0.01)
         self.gain_spin.setValue(0.5)
 
         self.warp_amp_spin = QDoubleSpinBox()
-        self.base_freq_spin.setDecimals(3)
+        self.warp_amp_spin.setDecimals(3)
         self.warp_amp_spin.setRange(0.0, 1.0)
         self.warp_amp_spin.setSingleStep(0.01)
         self.warp_amp_spin.setValue(0.1)
 
         self.warp_freq_spin = QDoubleSpinBox()
-        self.base_freq_spin.setDecimals(3)
+        self.warp_freq_spin.setDecimals(3)
         self.warp_freq_spin.setRange(0.001, 0.1)
         self.warp_freq_spin.setSingleStep(0.001)
         self.warp_freq_spin.setValue(0.02)
@@ -89,30 +96,40 @@ class NoiseWidget(QWidget):
         self.seed_spin.setValue(42)
 
         spinboxes = [
-            self.base_freq_spin, self.octaves_spin, self.lacunarity_spin,
-            self.gain_spin, self.warp_amp_spin, self.warp_freq_spin, self.seed_spin
+            self.base_freq_spin,
+            self.octaves_spin,
+            self.lacunarity_spin,
+            self.gain_spin,
+            self.warp_amp_spin,
+            self.warp_freq_spin,
+            self.seed_spin
         ]
-        for spinbox in spinboxes:
-            spinbox.setMaximumWidth(120)
+        for sb in spinboxes:
+            sb.setMaximumWidth(120)
 
-        # Add each row to layout
+        # place them in the grid
         add_control("Base Frequency:", self.base_freq_spin, 0)
-        add_control("Octaves:", self.octaves_spin, 1)
-        add_control("Lacunarity:", self.lacunarity_spin, 2)
-        add_control("Gain:", self.gain_spin, 3)
-        add_control("Warp Amplitude:", self.warp_amp_spin, 4)
-        add_control("Warp Frequency:", self.warp_freq_spin, 5)
-        add_control("Seed:", self.seed_spin, 6)
+        add_control("Octaves:",          self.octaves_spin, 1)
+        add_control("Lacunarity:",      self.lacunarity_spin, 2)
+        add_control("Gain:",            self.gain_spin, 3)
+        add_control("Warp Amplitude:",  self.warp_amp_spin, 4)
+        add_control("Warp Frequency:",  self.warp_freq_spin, 5)
+        add_control("Seed:",            self.seed_spin, 6)
 
-        # Wrap grid layout
+        # center the control grid and allow horizontal expansion
         control_container = QWidget()
         control_container.setLayout(control_layout)
+        control_container.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         control_wrapper = QHBoxLayout()
-        control_wrapper.setAlignment(Qt.AlignHCenter)
+        control_wrapper.addStretch(1)
         control_wrapper.addWidget(control_container)
+        control_wrapper.addStretch(1)
         main_layout.addLayout(control_wrapper)
 
-        # === Styled Continue button ===
+        # another stretcher so the “Continue” button stays at the bottom
+        main_layout.addStretch(1)
+
+        # === Continue button ===
         btn_container = QWidget()
         btn_layout = QHBoxLayout(btn_container)
         btn_layout.setAlignment(Qt.AlignCenter)
@@ -125,7 +142,7 @@ class NoiseWidget(QWidget):
         btn_layout.addWidget(self.next_button)
         main_layout.addWidget(btn_container)
 
-        # === Apply stylesheet ===
+        # === Styling ===
         self.setStyleSheet("""
             QWidget {
                 background-color: white;
@@ -148,7 +165,7 @@ class NoiseWidget(QWidget):
             }
         """)
 
-        # Connect preview updates
+        # wire up preview updates
         for widget in spinboxes:
             widget.valueChanged.connect(self.update_preview)
 
