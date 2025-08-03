@@ -4,7 +4,7 @@ import sys
 import pytest
 from PIL import Image
 
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QSizePolicy
 from PySide6.QtGui import QPalette, QColor, QFont, QPixmap
 from PySide6.QtCore import Qt, QSize
 
@@ -24,27 +24,37 @@ def test_initial_state_noise_widget():
 
 
 def test_background_and_layout_noise_widget():
-    """Widget has a white autofill background and the main layout’s margins/alignment."""
+    """Widget has a white autofill background and the main layout’s margins and spacing."""
     w = NoiseWidget()
+    # white autofill background
     assert w.autoFillBackground() is True
     pal = w.palette()
     assert pal.color(QPalette.ColorRole.Window) == QColor("white")
 
+    # main layout margins & spacing
     layout = w.layout()
-    align = layout.alignment()
-    assert bool(align & Qt.AlignTop)
-    assert bool(align & Qt.AlignHCenter)
     assert layout.getContentsMargins() == (40, 40, 40, 40)
     assert layout.spacing() == 25
 
 
 def test_preview_label_properties():
-    """The preview_label is centered, fixed to 512×512, and has the border style."""
+    """The preview_label is centered, has correct minimum size,
+    uses an expanding size policy, and has the border style."""
     w = NoiseWidget()
     lbl = w.preview_label
 
+    # alignment stays centered
     assert lbl.alignment() == Qt.AlignCenter
-    assert (lbl.width(), lbl.height()) == w.preview_size
+
+    # now we check minimum size rather than fixed size
+    assert (lbl.minimumWidth(), lbl.minimumHeight()) == w.preview_size
+
+    # size policy should be expanding in both directions
+    sp = lbl.sizePolicy()
+    assert sp.horizontalPolicy() == QSizePolicy.Expanding
+    assert sp.verticalPolicy()   == QSizePolicy.Expanding
+
+    # border style remains
     assert "border: 1px solid #ddd" in lbl.styleSheet()
 
 
